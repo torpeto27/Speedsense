@@ -1,6 +1,7 @@
 /*
   Measure time between (2) IR obstacle sensors and calculate velocity.
   Display velocity on I2C LCD, USB serial, and Bluetooth serial.
+  Uses Arduino Teensy++2.0
 
   Teensy++ 2.0
   Teensy on-board LED on pin 6
@@ -31,8 +32,8 @@ const char tmHeader[] = "Time (ms): ";
 const char blankLine[] = "                ";
 unsigned long t1=0;
 unsigned long t2=0; 
-unsigned long msMax=1000; // Timeout in ms between sensors
-unsigned long msMin=15; // Minimum time in ms (reasonable velocity)
+unsigned long maxMicroSec=1000000; // Timeout in us between sensors
+unsigned long minMicroSec=15000; // Minimum time in us (reasonable velocity)
 float velocity=0;
 float dtime=0;
 
@@ -60,29 +61,29 @@ void loop()
   while( digitalRead(sen1Pin) );
   // sensor 1 detected object, now watch for detection on sensor 2
   digitalWrite(ledPin, HIGH);   // set the LED on
-  t1=millis();
+  t1=micros();
   lcd.setCursor(0,1); // set the cursor to column 0, line 1
   lcd.print(blankLine); // Clear velocity to the LCD.
   while(digitalRead(sen2Pin))
   {
     // Timeout if it is taking too long between sensors
-    if ((millis() - t1) > msMax)
+    if ((micros() - t1) > maxMicroSec)
     {
       digitalWrite(ledPin, LOW);    // set the LED off
       return;
     }
   }
   // sensor 2 detected object, calculate the velocity
-  t2=millis();
+  t2=micros();
   digitalWrite(ledPin, LOW);    // set the LED off
   dtime=(t2-t1);
   // Ignore if the the time is too low (bad detection) to prevent race condition if 
   // both sensors are covered.
-  if (dtime < msMin)
+  if ((dtime) < minMicroSec)
     return;
-  dtime=dtime/1000; //convert millisecond to second
+  dtime=dtime/1000/1000; //convert microsecond to second
   velocity=(mmBetween/dtime);  //v=d/t
-  velocity=(velocity * 60)/(12*25.4); // convert to ft/min
+  velocity=(velocity * 60)/(12*25.4); // convert mm/s to ft/min
   
   //Display the velocity to serial, lcd, and bt
   Serial.print(tmHeader);
