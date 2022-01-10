@@ -1,0 +1,6 @@
+{
+    "board": "arduino:avr:yunmini",
+    "port": "COM3",
+    "programmer": "AVR ISP",
+    "sketch": "speedsens1.ino"
+}
